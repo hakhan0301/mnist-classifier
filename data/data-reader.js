@@ -16,7 +16,7 @@ module.exports = {
     };
 
     for(let i = 0; i < count; i++) {
-      set.features.push(tf.tensor1d(data.features[currentIndex]));
+      set.features.push(tf.tensor2d(data.features[currentIndex]));
       set.labels.push(tf.tensor1d(data.labels[currentIndex]));
       currentIndex++;
     }
