@@ -7,53 +7,75 @@ const model = createModel(0.07);
 
 test();
 
-async function train (setSize, validationPercentage) {
-
-}
-
 async function test () {
-  dataReader.initializeData('./parsed-data/test-data.json');
-  const data = tf.tidy(() => dataReader.fullSet());
-  console.log(data.features[0]);
-  model.execute(data.features[0]);
+  dataReader.initializeData('./parsed-data/train-data-0.json');
+  const data = tf.tidy(() => dataReader.nextSet(500));
+  // console.log(data);
+
+  console.log(tf.memory().numTensors);
+  console.log("started training");
+  const options = {
+    batchSize: 10,
+    epochs: 1, 
+    validationSplit: .2,
+    callbacks: {
+      onBatchEnd: (index, logs) => {
+        // console.log(logs);
+        console.log(tf.memory().numTensors);
+      }
+    }
+  }
+
+  const h = await model.fit(data.features, data.labels, options);
+  console.log(h.history.loss[0]);
+
   // console.log(tf.memory().numTensors);
   // console.log(tf.memory().numBytes);
 
-  // model.evaluate(data.features, data.labels).print();
+  // model.evaluate(tempData, tempOutput).print();
+  // model.evaluate(data.features, data.label).print();
 }
 
-function createModel(learningRate) {
-  const output = tf.sequential();
 
-  output.add(tf.layers.conv2d({
-    inputShape: [28, 28, 1],
-    kernelSize: 4,
-    strides: 1,
+function createModel(learningRate) {
+  const model = tf.sequential();
+
+  model.add(tf.layers.conv1d({
+    inputShape: [28, 28],
+    kernelSize: 5,
     filters: 8,
-    activation: 'sigmoid'
-  }));
-  output.add(tf.layers.maxPooling2d({
-    poolSize: [2, 2]
-  }));
-  output.add(tf.layers.conv2d({
-    kernelSize: 4,
     strides: 1,
-    filters: 8,
-    activation: 'sigmoid'
+    activation: 'relu',
+    kernelInitializer: 'VarianceScaling'
   }));
-  output.add(tf.layers.maxPooling2d({
-    poolSize: [2, 2]
+  model.add(tf.layers.maxPooling1d({
+    poolSize: 4,
+    strides: 4
   }));
-  output.add(tf.layers.flatten());
-  output.add(tf.layers.dense({
+  model.add(tf.layers.conv1d({
+    kernelSize: 5,
+    filters: 16,
+    strides: 1,
+    activation: 'relu',
+    kernelInitializer: 'VarianceScaling'
+  }));
+  model.add(tf.layers.maxPooling1d({
+    poolSize: 2,
+    strides: 4
+  }));
+  model.add(tf.layers.flatten());
+  model.add(tf.layers.dense({
     units: 10,
+    kernelInitializer: 'VarianceScaling',
     activation: 'softmax'
   }));
 
-  output.compile({
-    optimizer: tf.train.sgd(learningRate),
-    loss: tf.losses.softmaxCrossEntropy,
+  const optimizer = tf.train.sgd(learningRate);  
+
+  model.compile({
+    optimizer: optimizer,
+    loss: 'categoricalCrossentropy',
   });
 
-  return output;
+  return model;
 }

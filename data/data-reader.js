@@ -16,13 +16,15 @@ module.exports = {
     };
 
     for(let i = 0; i < count; i++) {
-      set.features.push(tf.tensor2d(data.features[currentIndex]));
-      set.labels.push(tf.tensor1d(data.labels[currentIndex]));
+      // set.features.push(tf.tensor([data.features[currentIndex]], [1, 28, 28]));
+      // set.labels.push(tf.tensor(data.labels[currentIndex], [1, 10]));
+      set.features.push(data.features[currentIndex]);
+      set.labels.push(data.labels[currentIndex]);
       currentIndex++;
     }
 
-    // set.features = tf.tensor2d(set.features);
-    // set.labels = tf.tensor2d(set.labels);
+    set.features = tf.tensor(set.features, [count, 28, 28]);
+    set.labels = tf.tensor2d(set.labels, [count, 10]);
 
     return set;
   },
