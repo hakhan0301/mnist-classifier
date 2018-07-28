@@ -1,26 +1,40 @@
 const tf = require('@tensorflow/tfjs');
 const dataReader = require('./data/data-reader');
 
-dataReader.initializeData('./parsed-data/test-data.json');
+const model = createModel(0.17);
 
-const model = createModel(0.07);
+test(10000);
+train(0, 1000).then(() => test(10000));
 
-test();
 
-async function test () {
-  dataReader.initializeData('./parsed-data/train-data-0.json');
-  const data = tf.tidy(() => dataReader.nextSet(500));
-  // console.log(data);
+function test (count) {
+  dataReader.initializeData('./parsed-data/test-data.json');
+  const data = tf.tidy(() => dataReader.nextSet(count));
+  dataReader.clearData();
+
+  console.log('started evaluating data');
+  model.evaluate(data.features, data.labels).print();
+  dataReader.disposeData(data);
+  console.log('\n');
+}
+
+async function train (fileNumber, count) {
+  let filePath = './parsed-data/train-data-' + fileNumber + '.json';
+
+  dataReader.initializeData(filePath);
+  const data = tf.tidy(() => dataReader.nextSet(count));
+  dataReader.clearData();
 
   console.log(tf.memory().numTensors);
   console.log("started training");
+
   const options = {
     batchSize: 10,
     epochs: 1, 
     validationSplit: .2,
     callbacks: {
       onBatchEnd: (index, logs) => {
-        // console.log(logs);
+        console.log(logs);
         console.log(tf.memory().numTensors);
       }
     }
@@ -28,12 +42,8 @@ async function test () {
 
   const h = await model.fit(data.features, data.labels, options);
   console.log(h.history.loss[0]);
-
-  // console.log(tf.memory().numTensors);
-  // console.log(tf.memory().numBytes);
-
-  // model.evaluate(tempData, tempOutput).print();
-  // model.evaluate(data.features, data.label).print();
+  dataReader.disposeData(data);
+  console.log('\n');
 }
 
 
@@ -78,4 +88,8 @@ function createModel(learningRate) {
   });
 
   return model;
+}
+
+function printTensors() {
+  console.log('tensor count: ' + tf.memory().numTensors);
 }
