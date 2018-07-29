@@ -1,10 +1,22 @@
 const tf = require("@tensorflow/tfjs");
 const dataReader = require("./data/data-reader");
+const timer = require("./Timer");
 
 const model = createModel(0.17);
+const modelFilePath = "";
 
-// test(10000);
-train(0, 10).then(() => test(10000));
+timer.startTimer();
+test(10000);
+timer.endTimer();
+
+// train(0, 10).then(() => test(10000));
+// train(0, 100).then(() => timer.endTimer());
+
+async function saveModel(filePath) {
+	model.save("file:///models");
+}
+
+async function loadModel(filePath) {}
 
 function test(count) {
 	dataReader.initializeData("./parsed-data/test-data.json");
@@ -12,14 +24,7 @@ function test(count) {
 	dataReader.clearData();
 
 	const options = {
-		batchSize: 10,
-		epochs: 1,
-		callbacks: {
-			onBatchEnd: (index, logs) => {
-				console.log(logs);
-				printTensors();
-			}
-		}
+		batchSize: 10
 	};
 
 	console.log("started evaluating data");
@@ -35,8 +40,8 @@ async function train(fileNumber, count) {
 	const data = tf.tidy(() => dataReader.nextSet(count));
 	dataReader.clearData();
 
-	console.log(tf.memory().numTensors);
-	console.log("started training");
+	printTensors();
+	console.log("started training \n");
 
 	const options = {
 		batchSize: 10,
