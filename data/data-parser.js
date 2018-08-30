@@ -1,30 +1,31 @@
-const fileSystem = require("fs");
+const fileSystem = require('fs');
 
 // data is stored in object as arrays for ease with tensors
 
-saveTrainingData();
+// saveTrainingData();
+saveTestingData();
 
 function saveTestingData() {
-	const inputData = require("./raw-data/mnist_handwritten_test.json");
+	const inputData = require('./raw-data/mnist_handwritten_test.json');
 
 	const outputObject = formatData(inputData, 0, 10000);
-	const outputFile = "./parsed-data/test-data.json";
+	const outputFile = './parsed-data/test-data.json';
 
 	saveJSON(outputObject, outputFile);
 }
 
 function saveTrainingData() {
-	const inputData = require("./raw-data/mnist_handwritten_train.json");
+	const inputData = require('./raw-data/mnist_handwritten_train.json');
 
 	for (let index = 0; index < 6; index++) {
 		const start = index * 10000;
 		const end = start + 10000;
 
 		const outputObject = formatData(inputData, start, end);
-		const outputFile = "./parsed-data/train-data-" + index + ".json";
+		const outputFile = './parsed-data/train-data-' + index + '.json';
 
 		saveJSON(outputObject, outputFile);
-		console.log("file: " + index + " done");
+		console.log('file: ' + index + ' done');
 	}
 }
 
@@ -35,7 +36,7 @@ function saveJSON(outputObject, outputFile) {
 			console.error(err);
 			return;
 		}
-		console.log("File has been created");
+		console.log('File has been created');
 	});
 }
 

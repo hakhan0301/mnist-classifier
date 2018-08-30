@@ -1,25 +1,32 @@
-const tf = require("@tensorflow/tfjs");
-const dataReader = require("./data/data-reader");
-const timer = require("./Timer");
+const tf = require('@tensorflow/tfjs');
+const dataReader = require('./data/data-reader');
+const timer = require('./Timer');
 
 const model = createModel(0.17);
-const modelFilePath = "";
+const modelFilePath = '';
 
 timer.startTimer();
-test(10000);
+test(100);
 timer.endTimer();
+saveModel();
 
-// train(0, 10).then(() => test(10000));
+// timer.startTimer();
+// train(0, 10000).then(() => {
+// 	timer.endTimer();
+// 	timer.startTimer();
+// 	test(10000);
+// 	timer.endTimer();
+// });
 // train(0, 100).then(() => timer.endTimer());
 
 async function saveModel(filePath) {
-	model.save("file:///models");
+	model.save('downloads://model-1');
 }
 
 async function loadModel(filePath) {}
 
 function test(count) {
-	dataReader.initializeData("./parsed-data/test-data.json");
+	dataReader.initializeData('./parsed-data/test-data.json');
 	const data = tf.tidy(() => dataReader.nextSet(count));
 	dataReader.clearData();
 
@@ -27,27 +34,27 @@ function test(count) {
 		batchSize: 10
 	};
 
-	console.log("started evaluating data");
+	console.log('started evaluating data');
 	model.evaluate(data.features, data.labels).print();
 	dataReader.disposeData(data);
-	console.log("\n");
+	console.log('\n');
 }
 
 async function train(fileNumber, count) {
-	let filePath = "./parsed-data/train-data-" + fileNumber + ".json";
+	let filePath = './parsed-data/train-data-' + fileNumber + '.json';
 
 	dataReader.initializeData(filePath);
 	const data = tf.tidy(() => dataReader.nextSet(count));
 	dataReader.clearData();
 
 	printTensors();
-	console.log("started training \n");
+	console.log('started training \n');
 
 	const options = {
 		batchSize: 10,
 		epochs: 1,
 		validationSplit: 0.2,
-		metrics: ["loss", "val_loss"],
+		metrics: ['loss', 'val_loss'],
 		callbacks: {
 			onBatchEnd: (index, logs) => {
 				console.log(logs);
@@ -59,7 +66,7 @@ async function train(fileNumber, count) {
 	const h = await model.fit(data.features, data.labels, options);
 	console.log(h.history);
 	dataReader.disposeData(data);
-	console.log("\n");
+	console.log('\n');
 }
 
 function createModel(learningRate) {
@@ -71,8 +78,8 @@ function createModel(learningRate) {
 			kernelSize: 5,
 			filters: 8,
 			strides: 1,
-			activation: "relu",
-			kernelInitializer: "VarianceScaling"
+			activation: 'relu',
+			kernelInitializer: 'VarianceScaling'
 		})
 	);
 	model.add(
@@ -86,8 +93,8 @@ function createModel(learningRate) {
 			kernelSize: 5,
 			filters: 16,
 			strides: 1,
-			activation: "relu",
-			kernelInitializer: "VarianceScaling"
+			activation: 'relu',
+			kernelInitializer: 'VarianceScaling'
 		})
 	);
 	model.add(
@@ -100,8 +107,8 @@ function createModel(learningRate) {
 	model.add(
 		tf.layers.dense({
 			units: 10,
-			kernelInitializer: "VarianceScaling",
-			activation: "softmax"
+			kernelInitializer: 'VarianceScaling',
+			activation: 'softmax'
 		})
 	);
 
@@ -109,12 +116,12 @@ function createModel(learningRate) {
 
 	model.compile({
 		optimizer: optimizer,
-		loss: "categoricalCrossentropy"
+		loss: 'categoricalCrossentropy'
 	});
 
 	return model;
 }
 
 function printTensors() {
-	console.log("tensor count: " + tf.memory().numTensors);
+	console.log('tensor count: ' + tf.memory().numTensors);
 }
